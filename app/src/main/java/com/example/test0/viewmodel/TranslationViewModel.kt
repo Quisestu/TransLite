@@ -1,5 +1,29 @@
 package com.example.test0.viewmodel
 
+/**
+ * TranslationViewModel 负责管理翻译应用的核心功能：
+ * 
+ * 1. 翻译服务 (TranslationService)
+ * - 使用 Google ML Kit Translation API
+ * - 支持实时翻译
+ * - 处理语言切换和文本更新
+ * 
+ * 2. OCR服务 (OCRService)
+ * - 使用 Google ML Kit Text Recognition API
+ * - 处理图片文字识别
+ * - 支持从相机拍摄的图片中提取文字
+ * 
+ * 3. 语音服务 (SpeechService)
+ * - 语音识别：使用 Android SpeechRecognizer API
+ * - 文本转语音：使用 Android TextToSpeech API
+ * - 管理语音识别和语音合成的生命周期
+ * 
+ * 状态管理：
+ * - 使用 StateFlow 管理 UI 状态
+ * - 处理加载、成功、错误等状态
+ * - 管理源语言、目标语言、源文本、翻译文本等状态
+ */
+
 import android.app.Application
 import android.graphics.Bitmap
 import androidx.lifecycle.AndroidViewModel

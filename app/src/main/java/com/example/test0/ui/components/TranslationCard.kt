@@ -58,19 +58,18 @@ fun TranslationCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Source text input
+            // 源文本输入框
             OutlinedTextField(
                 value = sourceText,
                 onValueChange = onSourceTextChanged,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = "Enter text to translate") },
-                placeholder = { Text(text = "Type here...") },
+                label = { Text(text = "输入要翻译的文本") },
                 trailingIcon = {
                     if (sourceText.isNotEmpty()) {
                         IconButton(onClick = onClearText) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear text"
+                                contentDescription = "清除文本"
                             )
                         }
                     }
@@ -79,7 +78,7 @@ fun TranslationCard(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            // Action buttons
+            // 功能按钮
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -87,32 +86,27 @@ fun TranslationCard(
                 IconButton(onClick = onCameraClicked) {
                     Icon(
                         imageVector = Icons.Outlined.PhotoCamera,
-                        contentDescription = "Take photo for OCR"
+                        contentDescription = "拍照识别文字"
                     )
                 }
                 
                 IconButton(onClick = onMicrophoneClicked) {
                     Icon(
                         imageVector = Icons.Outlined.Mic,
-                        contentDescription = "Voice input"
+                        contentDescription = "语音输入"
                     )
                 }
                 
                 Spacer(modifier = Modifier.weight(1f))
                 
-                Button(onClick = onSwapLanguages) {
-                    Icon(
-                        imageVector = Icons.Default.SwapVert,
-                        contentDescription = "Swap languages"
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Swap")
+                Button(onClick = { onSourceTextChanged(sourceText) }) {
+                    Text(text = "点击翻译")
                 }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Translation result
+            // 翻译结果
             Box(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -120,7 +114,7 @@ fun TranslationCard(
                     value = translatedText,
                     onValueChange = {},
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = "Translation") },
+                    label = { Text(text = "翻译结果") },
                     readOnly = true,
                     trailingIcon = {
                         Row {
@@ -129,14 +123,14 @@ fun TranslationCard(
                             }) {
                                 Icon(
                                     imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = "Copy to clipboard"
+                                    contentDescription = "复制到剪贴板"
                                 )
                             }
                             
                             IconButton(onClick = onSpeakClicked) {
                                 Icon(
                                     imageVector = Icons.Outlined.VolumeUp,
-                                    contentDescription = "Speak translation"
+                                    contentDescription = "朗读翻译"
                                 )
                             }
                         }

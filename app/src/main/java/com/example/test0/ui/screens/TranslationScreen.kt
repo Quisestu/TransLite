@@ -1,6 +1,40 @@
 package com.example.test0.ui.screens
 
+/**
+ * 本应用使用的API说明：
+ * 
+ * 1. 翻译功能 (Translation)
+ * - 使用 Google ML Kit Translation API
+ * - 依赖: com.google.mlkit:translate:17.0.2
+ * - 支持12种语言之间的互译
+ * 
+ * 2. OCR文字识别 (Optical Character Recognition)
+ * - 使用 Google ML Kit Text Recognition API
+ * - 依赖: 
+ *   - com.google.mlkit:text-recognition:16.0.0
+ *   - com.google.android.gms:play-services-mlkit-text-recognition:19.0.0
+ * - 支持从图片中提取文字
+ * 
+ * 3. 语音识别 (Speech Recognition)
+ * - 使用 Android 原生 Speech Recognition API
+ * - 通过 Intent 调用系统语音识别服务
+ * - 需要 RECORD_AUDIO 权限
+ * 
+ * 4. 文本转语音 (Text-to-Speech)
+ * - 使用 Android 原生 TextToSpeech API
+ * - 支持多种语言的语音合成
+ * 
+ * 5. 相机功能
+ * - 使用 CameraX API
+ * - 依赖:
+ *   - androidx.camera:camera-camera2:1.3.2
+ *   - androidx.camera:camera-lifecycle:1.3.2
+ *   - androidx.camera:camera-view:1.3.2
+ * - 用于拍摄图片进行OCR识别
+ */
+
 import android.Manifest
+import android.app.Application
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,6 +79,9 @@ import com.example.test0.viewmodel.TranslationViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -61,14 +98,14 @@ fun TranslationScreen(
     val isTranslating by viewModel.isTranslating.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
     
-    // Camera state
+    // 相机状态
     var showCamera by remember { mutableStateOf(false) }
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
     
-    // Audio recording state
+    // 录音状态
     val audioPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
     
-    // Handle errors
+    // 处理错误
     LaunchedEffect(uiState) {
         if (uiState is TranslationViewModel.TranslationUiState.Error) {
             val errorMessage = (uiState as TranslationViewModel.TranslationUiState.Error).message
@@ -99,7 +136,7 @@ fun TranslationScreen(
                     .padding(paddingValues)
                     .padding(16.dp)
             ) {
-                // Language selectors
+                // 语言选择器
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -111,7 +148,7 @@ fun TranslationScreen(
                         languages = Language.getAllLanguages(),
                         onLanguageSelected = { viewModel.updateSourceLanguage(it) },
                         modifier = Modifier.weight(1f),
-                        label = "From"
+                        label = "从"
                     )
                     
                     IconButton(
@@ -120,7 +157,7 @@ fun TranslationScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.SwapHoriz,
-                            contentDescription = "Swap languages"
+                            contentDescription = "交换语言"
                         )
                     }
                     
@@ -129,13 +166,13 @@ fun TranslationScreen(
                         languages = Language.getAllLanguages(),
                         onLanguageSelected = { viewModel.updateTargetLanguage(it) },
                         modifier = Modifier.weight(1f),
-                        label = "To"
+                        label = "到"
                     )
                 }
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                // Translation card
+                // 翻译卡片
                 TranslationCard(
                     sourceText = sourceText,
                     translatedText = translatedText,
@@ -163,56 +200,29 @@ fun TranslationScreen(
                         viewModel.speakTranslatedText()
                     }
                 )
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // Feature description
-                Surface(
-                    tonalElevation = 1.dp,
-                    shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Features",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        Text(
-                            text = "• Multi-language Translation - Support for 12 languages",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        
-                        Spacer(modifier = Modifier.height(4.dp))
-                        
-                        Text(
-                            text = "• OCR Text Recognition - Extract text from images",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        
-                        Spacer(modifier = Modifier.height(4.dp))
-                        
-                        Text(
-                            text = "• Speech Recognition - Convert speech to text",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        
-                        Spacer(modifier = Modifier.height(4.dp))
-                        
-                        Text(
-                            text = "• Text-to-Speech - Listen to translations",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
             }
         }
+    }
+}
+
+// 预览参数提供器
+class TranslationViewModelPreviewParameterProvider : PreviewParameterProvider<TranslationViewModel> {
+    override val values = sequenceOf(
+        TranslationViewModel(Application())
+    )
+}
+
+// 预览函数
+@Preview(
+    name = "翻译界面预览",
+    showBackground = true,
+    showSystemUi = true,
+    widthDp = 360,
+    heightDp = 640
+)
+@Composable
+fun TranslationScreenPreview() {
+    MaterialTheme {
+        TranslationScreen()
     }
 } 
