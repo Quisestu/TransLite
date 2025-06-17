@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
@@ -30,19 +32,22 @@ fun LanguageSelector(
     languages: List<Language>,
     onLanguageSelected: (Language) -> Unit,
     modifier: Modifier = Modifier,
-    label: String? = null
+    label: String? = null,
+    isDetected: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
     
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.small,
-        tonalElevation = 2.dp
+        tonalElevation = 2.dp,
+        color = MaterialTheme.colorScheme.surface
     ) {
         Box(
             modifier = Modifier
                 .clickable { expanded = true }
                 .padding(16.dp)
+                .height(50.dp)
         ) {
             if (label != null) {
                 Text(
@@ -53,8 +58,8 @@ fun LanguageSelector(
             }
             
             Text(
-                text = selectedLanguage.displayName,
-                style = MaterialTheme.typography.bodyLarge,
+                text = if (isDetected) "${selectedLanguage.displayName}(已检测)" else selectedLanguage.displayName,
+                style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
                     .padding(top = if (label != null) 16.dp else 0.dp)
@@ -74,11 +79,11 @@ fun LanguageSelector(
             ) {
                 languages.forEach { language ->
                     DropdownMenuItem(
-                        text = { Text(text = language.displayName) },
+                        text = {Text(text = language.displayName)},
                         onClick = {
                             onLanguageSelected(language)
                             expanded = false
-                        }
+                        },
                     )
                 }
             }

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,16 +8,25 @@ plugins {
 
 android {
     namespace = "com.example.test0"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.test0"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val localProps = Properties()
+        val localPropsFile = rootProject.file("local.properties")
+        if (localPropsFile.exists()) {
+            localPropsFile.inputStream().use { localProps.load(it) }
+            buildConfigField("String", "TENCENT_APP_ID", "\"${localProps.getProperty("TENCENT_APP_ID") ?: ""}\"")
+            buildConfigField("String", "TENCENT_SECRET_ID", "\"${localProps.getProperty("TENCENT_SECRET_ID") ?: ""}\"")
+            buildConfigField("String", "TENCENT_SECRET_KEY", "\"${localProps.getProperty("TENCENT_SECRET_KEY") ?: ""}\"")
+        }
     }
 
     buildTypes {
@@ -35,6 +46,7 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
     composeOptions {
@@ -56,23 +68,33 @@ dependencies {
     implementation(libs.androidx.material3)
     
     // Navigation
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation(libs.androidx.navigation.compose)
     
     // CameraX
-    implementation("androidx.camera:camera-camera2:1.3.2")
-    implementation("androidx.camera:camera-lifecycle:1.3.2")
-    implementation("androidx.camera:camera-view:1.3.2")
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
     
-    // ML Kit dependencies
-    implementation("com.google.mlkit:translate:17.0.2")
-    implementation("com.google.mlkit:text-recognition:16.0.0")
-    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
+    // 腾讯云SDK
+    implementation("com.tencentcloudapi:tencentcloud-sdk-java:3.1.1274") {
+        exclude(group = "org.slf4j", module = "slf4j-api")
+    }
+    implementation(libs.slf4j.api)
+    implementation(libs.slf4j.simple)
     
     // Permissions handling
-    implementation("com.google.accompanist:accompanist-permissions:0.30.1")
+    implementation(libs.accompanist.permissions)
     
     // Icons Extended
-    implementation("androidx.compose.material:material-icons-extended:1.6.3")
+    implementation(libs.androidx.material.icons.extended)
+    
+    // Coil for image loading
+    implementation(libs.coil.compose)
+    // OkHttp for WebSocket
+    implementation(libs.okhttp)
+    
+    // Okio for toByteString
+    implementation("com.squareup.okio:okio:2.10.0")
     
     // Testing
     testImplementation(libs.junit)
@@ -82,4 +104,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // DataStore
+    implementation(libs.androidx.datastore.preferences)
 }
