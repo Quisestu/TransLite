@@ -30,10 +30,40 @@ fun Test0Theme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         darkTheme -> darkColorScheme(
-            primary = Color(0xFF002470)
+            primary = Color(0xFF90CAF9),           // 浅蓝主色（Blue 200）
+            onPrimary = Color(0xFF00325A),
+            primaryContainer = Color(0xFF1565C0),  // 深蓝容器
+            onPrimaryContainer = Color(0xFFD2E4FF),
+            secondary = Color(0xFF64B5F6),         // 亮蓝副色（Blue 300/400）
+            onSecondary = Color(0xFF00325A),
+            secondaryContainer = Color(0xFF1565C0),
+            onSecondaryContainer = Color(0xFFD2E4FF),
+            tertiary = Color(0xFF4DD0E1),          // 青蓝强调色（Cyan 300）
+            onTertiary = Color(0xFF00363A),
+            tertiaryContainer = Color(0xFF006064),
+            onTertiaryContainer = Color(0xFFE0F7FA),
+            background = Color(0xFF0A1929),
+            onBackground = Color(0xFFE3F2FD),
+            surface = Color(0xFF121212),
+            onSurface = Color(0xFFE3F2FD),
         )
         else -> lightColorScheme(
-            primary = Color(0xFF73B1E4)
+            primary = Color(0xFF42A5F5),           // 亮蓝色主色（Blue 400）
+            onPrimary = Color(0xFFFFFFFF),
+            primaryContainer = Color(0xFFE3F2FD),  // 更浅的蓝色
+            onPrimaryContainer = Color(0xFF001E2F),
+            secondary = Color(0xFF64B5F6),         // 亮蓝副色（Blue 300/400）
+            onSecondary = Color(0xFF001E2F),
+            secondaryContainer = Color(0xFFBBDEFB),
+            onSecondaryContainer = Color(0xFF001E2F),
+            tertiary = Color(0xFF81D4FA),          // 青蓝强调色（Cyan 200）
+            onTertiary = Color(0xFF00363A),
+            tertiaryContainer = Color(0xFFE0F7FA),
+            onTertiaryContainer = Color(0xFF00363A),
+            background = Color(0xFFF8FAFC),
+            onBackground = Color(0xFF1E293B),
+            surface = Color(0xFFFFFFFF),
+            onSurface = Color(0xFF1E293B),
         )
     }
     val view = LocalView.current

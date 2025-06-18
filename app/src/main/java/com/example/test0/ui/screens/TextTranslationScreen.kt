@@ -40,7 +40,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -98,6 +100,13 @@ fun TextTranslationScreen(
     val ttsState by viewModel.ttsState.collectAsState()
     val isSpeaking = ttsState is com.example.test0.service.TextToSpeechService.TTSState.Speaking
 
+    // 离开界面时自动停止朗读
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.stopSpeaking()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -123,7 +132,11 @@ fun TextTranslationScreen(
                 actions = {
                     // 占位
                     IconButton(onClick = {}) {
-                        Icon(Icons.Default.History, contentDescription = "")
+                        Icon(
+                            Icons.Default.History, 
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                            )
                     }
                     // 主题切换按钮
                     IconButton(onClick = {
@@ -140,10 +153,14 @@ fun TextTranslationScreen(
                                 AppThemeMode.DARK -> Icons.Default.DarkMode
                                 AppThemeMode.SYSTEM -> Icons.Default.Computer
                             },
-                            contentDescription = "切换主题"
+                            contentDescription = "切换主题",
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
     ) { paddingValues ->
@@ -361,7 +378,7 @@ fun TextTranslationScreen(
                         .weight(1f)
                         .padding(end = 16.dp)
                         .height(60.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     val configuration = LocalConfiguration.current
@@ -389,7 +406,7 @@ fun TextTranslationScreen(
                         .weight(1f)
                         .padding(start = 16.dp)
                         .height(60.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     val configuration = LocalConfiguration.current

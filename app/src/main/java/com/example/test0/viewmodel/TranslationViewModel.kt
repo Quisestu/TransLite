@@ -114,12 +114,9 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
                     _isDetectingLanguage.value = true
                     delay(250)
                     try {
-                        Log.d(
-                            "TranslationVM",
-                            "Detecting language for text: $text (triggered by AUTO switch)"
-                        )
+                        Log.i("TranslationVM", "Language detection started")
                         val detected = translationService.detectLanguage(text)
-                        Log.d("TranslationVM", "Detected language: $detected")
+                        Log.i("TranslationVM", "Language detected: ${detected.displayName}")
                         _detectedLanguage.value = detected
                         _isAutoDetected.value = true
                         val detectedTargets = Language.getTargetLanguages(detected)
@@ -163,11 +160,9 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
                 _isDetectingLanguage.value = true
                 delay(250)
                 try {
-                    // log: 开始调用语种检测API
-                    Log.d("TranslationVM", "Detecting language for text: $text")
+                    Log.i("TranslationVM", "Language detection started")
                     val detected = translationService.detectLanguage(text)
-                    // log: 语种检测API返回的结果
-                    Log.d("TranslationVM", "Detected language: $detected")
+                    Log.i("TranslationVM", "Language detected: ${detected.displayName}")
                     _detectedLanguage.value = detected
                     _isAutoDetected.value = true
                     val availableTargetLanguages = Language.getTargetLanguages(detected)
@@ -176,7 +171,6 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
                         _targetLanguage.value = availableTargetLanguages.first()
                     }
                 } catch (e: Exception) {
-                    // log: 语种检测API调用出错
                     Log.e("TranslationVM", "Language detection failed: ${e.message}", e)
                     _isAutoDetected.value = false
                     _detectedLanguage.value = null
@@ -193,22 +187,19 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             _isTranslating.value = true
             try {
-                // log: 开始调用翻译API
-                Log.d(
-                    "TranslationVM",
-                    "Translating from ${_sourceLanguage.value} to ${_targetLanguage.value}, text: ${_sourceText.value}"
-                )
+                // 开始翻译
+                Log.i("TranslationVM", "Translation started: ${_sourceLanguage.value.displayName} -> ${_targetLanguage.value.displayName}")
+                
                 val result = translationService.translateText(
                     _sourceText.value,
                     _sourceLanguage.value,
                     _targetLanguage.value
                 )
-                // log: 翻译API返回的结果
-                Log.d("TranslationVM", "Translation result: $result")
+                
+                Log.i("TranslationVM", "Translation completed successfully")
                 _translatedText.value = result
-                _uiState.value = TranslationUiState.Success
+                _isTranslating.value = false
             } catch (e: Exception) {
-                // log: 翻译API调用出错
                 Log.e("TranslationVM", "Translation failed: ${e.message}", e)
                 _uiState.value = TranslationUiState.Error("翻译失败: ${e.message}")
             } finally {
@@ -311,6 +302,7 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     override fun onCleared() {
+        stopSpeaking()
         textToSpeechService.cleanup()
         super.onCleared()
     }

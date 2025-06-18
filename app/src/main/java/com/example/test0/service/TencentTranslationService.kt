@@ -39,10 +39,7 @@ class TencentTranslationService {
                 val resp = client.TextTranslate(req) as TextTranslateResponse
                 resp.targetText ?: ""
             } catch (e: Exception) {
-                Log.e("TencentTranslation", "API调用失败: ${e.message}", e)
-                if (e is java.net.UnknownHostException || e is java.net.SocketTimeoutException || e is java.io.IOException) {
-                    Log.e("TencentTranslation", "网络异常: ${e.javaClass.simpleName} - ${e.message}")
-                }
+                Log.e("TencentTranslation", "Translation API failed: ${e.message}", e)
                 throw TranslationException("翻译失败: ${e.message ?: e.toString()}")
             }
         }

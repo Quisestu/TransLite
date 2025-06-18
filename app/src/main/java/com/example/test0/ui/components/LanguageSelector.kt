@@ -33,7 +33,8 @@ fun LanguageSelector(
     onLanguageSelected: (Language) -> Unit,
     modifier: Modifier = Modifier,
     label: String? = null,
-    isDetected: Boolean = false
+    isDetected: Boolean = false,
+    enabled: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
     
@@ -44,8 +45,11 @@ fun LanguageSelector(
         color = MaterialTheme.colorScheme.surface
     ) {
         Box(
-            modifier = Modifier
+            modifier = if (enabled) Modifier
                 .clickable { expanded = true }
+                .padding(16.dp)
+                .height(50.dp)
+            else Modifier
                 .padding(16.dp)
                 .height(50.dp)
         ) {
@@ -66,25 +70,29 @@ fun LanguageSelector(
                     .align(if (label != null) Alignment.BottomStart else Alignment.CenterStart)
             )
             
-            Icon(
-                imageVector = Icons.Default.ArrowDropDown,
-                contentDescription = "Select language",
-                modifier = Modifier.align(Alignment.CenterEnd)
-            )
+            if (enabled) {
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "Select language",
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                )
+            }
             
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
-            ) {
-                languages.forEach { language ->
-                    DropdownMenuItem(
-                        text = {Text(text = language.displayName)},
-                        onClick = {
-                            onLanguageSelected(language)
-                            expanded = false
-                        },
-                    )
+            if (enabled) {
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                ) {
+                    languages.forEach { language ->
+                        DropdownMenuItem(
+                            text = {Text(text = language.displayName)},
+                            onClick = {
+                                onLanguageSelected(language)
+                                expanded = false
+                            },
+                        )
+                    }
                 }
             }
         }
