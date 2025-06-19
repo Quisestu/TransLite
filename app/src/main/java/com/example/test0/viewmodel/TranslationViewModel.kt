@@ -1,14 +1,13 @@
 package com.example.test0.viewmodel
 
 // TranslationViewModel 负责管理翻译应用的核心功能：
-// - 腾讯云机器翻译API（文本、图片翻译）
+// - 腾讯云机器翻译API（文本翻译）
 // - 语音识别（Android SpeechRecognizer）
 // - 文本转语音（Android TextToSpeech）
 // - 状态管理（StateFlow）
 
 import android.Manifest
 import android.app.Application
-import android.graphics.Bitmap
 import androidx.annotation.RequiresPermission
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -122,7 +121,7 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
                         val detectedTargets = Language.getTargetLanguages(detected)
                         _availableTargetLanguages.value = detectedTargets
                         if (!_availableTargetLanguages.value.contains(_targetLanguage.value)) {
-                            _targetLanguage.value = _availableTargetLanguages.value.first()
+                            _targetLanguage.value = detectedTargets.first()
                         }
                     } catch (e: Exception) {
                         Log.e("TranslationVM", "Language detection failed: ${e.message}", e)
@@ -202,33 +201,6 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
             } catch (e: Exception) {
                 Log.e("TranslationVM", "Translation failed: ${e.message}", e)
                 _uiState.value = TranslationUiState.Error("翻译失败: ${e.message}")
-            } finally {
-                _isTranslating.value = false
-            }
-        }
-    }
-
-    fun translateImage(bitmap: Bitmap) {
-        _isTranslating.value = true
-        viewModelScope.launch {
-            try {
-                val result = translationService.translateImage(
-                    bitmap,
-                    _sourceLanguage.value,
-                    _targetLanguage.value
-                )
-                _sourceText.value = result.sourceText
-                _translatedText.value = result.translatedText
-                if (_sourceLanguage.value == Language.AUTO) {
-                    _sourceLanguage.value = result.detectedLanguage
-                    _isAutoDetected.value = true
-                    _availableTargetLanguages.value =
-                        Language.getTargetLanguages(result.detectedLanguage)
-                }
-                _canTranslate.value = true
-                _uiState.value = TranslationUiState.Success
-            } catch (e: Exception) {
-                _uiState.value = TranslationUiState.Error("图片翻译失败: ${e.message}")
             } finally {
                 _isTranslating.value = false
             }

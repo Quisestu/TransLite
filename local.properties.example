@@ -1,0 +1,22 @@
+# 请复制此文件为 local.properties 并填入您的配置信息
+# 这个文件不会被提交到Git仓库
+
+# Android SDK路径 (Android Studio会自动生成)
+sdk.dir=YOUR_ANDROID_SDK_PATH
+
+# 腾讯云配置 - 请在腾讯云控制台获取以下信息
+# 获取方式：https://console.cloud.tencent.com/cam/capi
+TENCENT_APP_ID=你的应用ID
+TENCENT_SECRET_ID=你的SecretId
+TENCENT_SECRET_KEY=你的SecretKey
+
+# 腾讯云地区配置 - 选择离您最近的服务器
+# 常用地区选项：
+# ap-guangzhou  广州（华南）
+# ap-shanghai   上海（华东）  
+# ap-beijing    北京（华北）
+# ap-chengdu    成都（西南）
+# ap-singapore  新加坡（亚太东南）
+# ap-hongkong   香港
+# ap-tokyo      东京（亚太东北）
+TENCENT_REGION=ap-guangzhou 

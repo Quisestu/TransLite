@@ -54,7 +54,15 @@ class SpeechTranslationViewModel(application: Application) : AndroidViewModel(ap
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
     
+    private val _isProcessingQueue = MutableStateFlow(false)
+    val isProcessingQueue: StateFlow<Boolean> = _isProcessingQueue.asStateFlow()
+    
     private var countdownJob: Job? = null
+    private var shouldIgnoreTranslation = false // 新增：是否忽略翻译结果（清除时使用）
+
+    init {
+        textToSpeechService.initializeTextToSpeech()
+    }
 
     fun swapLanguages() {
         val temp = _sourceLanguage.value
@@ -63,19 +71,43 @@ class SpeechTranslationViewModel(application: Application) : AndroidViewModel(ap
     }
 
     fun clearSourceText() {
+        // 设置忽略翻译标志
+        shouldIgnoreTranslation = true
+        
+        // 强制停止服务并清空队列
+        streamingService?.forceStop()
+        
+        // 立即清空文本和重置状态
         _sourceText.value = ""
         _translatedText.value = ""
+        _isRecording.value = false
+        _isProcessingQueue.value = false
+        _volume.value = 0
+        _remainingTimeSeconds.value = 60
+        countdownJob?.cancel()
         stopSpeaking()
+        
+        // 延迟重置忽略标志，确保清除操作完成
+        viewModelScope.launch {
+            delay(500)
+            shouldIgnoreTranslation = false
+        }
     }
 
     fun updateSourceText(text: String) {
         android.util.Log.d("SpeechViewModel", "更新源文本: '$text'")
-        _sourceText.value = text
+        // 如果正在清除操作，忽略源文本更新
+        if (!shouldIgnoreTranslation) {
+            _sourceText.value = text
+        }
     }
 
     fun updateTranslatedText(text: String) {
         android.util.Log.d("SpeechViewModel", "更新译文: '$text'")
-        _translatedText.value = text
+        // 如果正在清除操作，忽略翻译结果
+        if (!shouldIgnoreTranslation) {
+            _translatedText.value = text
+        }
     }
 
     fun speakSourceText() {
@@ -101,8 +133,16 @@ class SpeechTranslationViewModel(application: Application) : AndroidViewModel(ap
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     fun startStreamingRecognition(onResult: (String, String) -> Unit, onError: (String) -> Unit) {
-        if (_isRecording.value) return
+        if (_isRecording.value || _isProcessingQueue.value) return
         
+        // 开始录音时停止当前朗读
+        stopSpeaking()
+        
+        // 立即重置文本显示区
+        _sourceText.value = ""
+        _translatedText.value = ""
+        
+        shouldIgnoreTranslation = false // 重置忽略标志
         _isRecording.value = true
         startCountdown()
         
@@ -118,7 +158,10 @@ class SpeechTranslationViewModel(application: Application) : AndroidViewModel(ap
                 _errorMessage.value = errorMsg
                 onError(errorMsg)
             },
-            onVolume = { amp -> _volume.value = amp }
+            onVolume = { amp -> _volume.value = amp },
+            onQueueStatusChanged = { isProcessing ->
+                _isProcessingQueue.value = isProcessing
+            }
         )
         streamingService?.startStreaming()
     }
@@ -150,9 +193,14 @@ class SpeechTranslationViewModel(application: Application) : AndroidViewModel(ap
         _isRecording.value = false
         countdownJob?.cancel()
         
-        // 等待所有请求处理完毕后重置倒计时
+        // 等待队列处理完毕后再重置倒计时和音量
         viewModelScope.launch {
-            delay(1000) // 给一点时间让请求完成
+            // 等待队列处理完成
+            while (_isProcessingQueue.value) {
+                delay(100)
+            }
+            
+            // 队列处理完成后重置
             if (!_isRecording.value) { // 确保没有新的录音开始
                 _remainingTimeSeconds.value = 60
                 _volume.value = 0

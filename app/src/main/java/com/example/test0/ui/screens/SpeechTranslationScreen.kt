@@ -13,7 +13,12 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +31,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.test0.model.Language
+import com.example.test0.AppThemeMode
 import com.example.test0.viewmodel.SpeechTranslationViewModel
 import com.example.test0.ui.components.LanguageSelector
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -41,13 +47,16 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.unit.Dp
+import androidx.compose.material3.LocalContentColor
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @SuppressLint("MissingPermission")
 @Composable
 fun SpeechTranslationScreen(
     onNavigateBack: () -> Unit,
-    viewModel: SpeechTranslationViewModel = viewModel()
+    themeMode: AppThemeMode,
+    onThemeSwitch: (AppThemeMode) -> Unit,
+    viewModel: SpeechTranslationViewModel
 ) {
     // 仅支持中英互换
     val sourceLanguage by viewModel.sourceLanguage.collectAsState()
@@ -57,6 +66,7 @@ fun SpeechTranslationScreen(
     val remainingTime by viewModel.remainingTimeSeconds.collectAsState()
     val isRecording by viewModel.isRecording.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val isProcessingQueue by viewModel.isProcessingQueue.collectAsState()
 
     val clipboardManager = LocalClipboardManager.current
     val ttsState by viewModel.ttsState.collectAsState()
@@ -105,6 +115,35 @@ fun SpeechTranslationScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBackIos, contentDescription = "返回")
+                    }
+                },
+                actions = {
+                    // 占位
+                    IconButton(onClick = {}) {
+                        Icon(
+                            Icons.Default.History, 
+                            contentDescription = "",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                    }
+                    // 主题切换按钮
+                    IconButton(onClick = {
+                        val next = when (themeMode) {
+                            AppThemeMode.LIGHT -> AppThemeMode.DARK
+                            AppThemeMode.DARK -> AppThemeMode.SYSTEM
+                            AppThemeMode.SYSTEM -> AppThemeMode.LIGHT
+                        }
+                        onThemeSwitch(next)
+                    }) {
+                        Icon(
+                            imageVector = when (themeMode) {
+                                AppThemeMode.LIGHT -> Icons.Default.LightMode
+                                AppThemeMode.DARK -> Icons.Default.DarkMode
+                                AppThemeMode.SYSTEM -> Icons.Default.Computer
+                            },
+                            contentDescription = "切换主题",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -160,13 +199,37 @@ fun SpeechTranslationScreen(
                     .background(MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium)
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    Text(
-                        text = sourceLanguage.displayName,
-                        style = MaterialTheme.typography.titleSmall,
+                    // 标题行，语言名称和加载指示器在一起
+                    Row(
                         modifier = Modifier
-                            .padding(start = 8.dp, top = 16.dp, bottom = 4.dp),
-                        textAlign = TextAlign.Start
-                    )
+                            .fillMaxWidth()
+                            .padding(start = 8.dp, top = 16.dp, bottom = 4.dp, end = 8.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = sourceLanguage.displayName,
+                            style = MaterialTheme.typography.titleSmall,
+                            textAlign = TextAlign.Start
+                        )
+                        
+                        // 加载指示器紧跟在标题后面
+                        if (isProcessingQueue) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "处理中...",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
                     TextField(
                         value = sourceText,
                         onValueChange = {},
@@ -190,23 +253,36 @@ fun SpeechTranslationScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row {
-                            IconButton(onClick = {
-                                if (isSpeaking && currentTtsType == com.example.test0.viewmodel.SpeechTranslationViewModel.TtsType.SOURCE) {
-                                    viewModel.stopSpeaking()
-                                } else {
-                                    viewModel.speakSourceText()
-                                }
-                            }) {
+                            IconButton(
+                                onClick = {
+                                    if (isSpeaking && currentTtsType == com.example.test0.viewmodel.SpeechTranslationViewModel.TtsType.SOURCE) {
+                                        viewModel.stopSpeaking()
+                                    } else {
+                                        viewModel.speakSourceText()
+                                    }
+                                },
+                                enabled = !isRecording
+                            ) {
                                 Icon(
                                     imageVector = if (isSpeaking && currentTtsType == com.example.test0.viewmodel.SpeechTranslationViewModel.TtsType.SOURCE) Icons.Default.StopCircle else Icons.Default.VolumeUp,
-                                    contentDescription = if (isSpeaking && currentTtsType == com.example.test0.viewmodel.SpeechTranslationViewModel.TtsType.SOURCE) "停止朗读" else "朗读"
+                                    contentDescription = if (isSpeaking && currentTtsType == com.example.test0.viewmodel.SpeechTranslationViewModel.TtsType.SOURCE) "停止朗读" else "朗读",
+                                    tint = if (!isRecording) LocalContentColor.current else Color.Gray
                                 )
-                            }
-                            IconButton(onClick = {
-                                clipboardManager.setText(AnnotatedString(sourceText))
-                            }) {
-                                Icon(Icons.Default.ContentCopy, contentDescription = "复制")
-                            }
+                        }
+                            IconButton(
+                                onClick = {
+                                    if (sourceText.isNotEmpty()) {
+                                        clipboardManager.setText(AnnotatedString(sourceText))
+                                    }
+                                },
+                                enabled = !isRecording
+                            ) {
+                                Icon(
+                                    Icons.Default.ContentCopy, 
+                                    contentDescription = "复制",
+                                    tint = if (!isRecording) LocalContentColor.current else Color.Gray
+                                )
+                        }
                         }
                         
                         // 倒计时显示
@@ -227,10 +303,19 @@ fun SpeechTranslationScreen(
                 }
                 // 清除按钮放右上角
                 IconButton(
-                    onClick = { viewModel.clearSourceText() },
-                    modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
+                    onClick = { 
+                        if (!isRecording) {
+                            viewModel.clearSourceText() 
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.TopEnd).padding(4.dp),
+                    enabled = !isRecording
                 ) {
-                    Icon(Icons.Default.Clear, contentDescription = "清除")
+                    Icon(
+                        Icons.Default.Clear, 
+                        contentDescription = "清除",
+                        tint = if (!isRecording) LocalContentColor.current else Color.Gray
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -256,8 +341,8 @@ fun SpeechTranslationScreen(
                         readOnly = true,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f)
-                            .verticalScroll(targetScrollState)
+                        .weight(1f)
+                        .verticalScroll(targetScrollState)
                             .padding(horizontal = 8.dp),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -271,22 +356,35 @@ fun SpeechTranslationScreen(
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = {
-                            if (isSpeaking && currentTtsType == com.example.test0.viewmodel.SpeechTranslationViewModel.TtsType.TARGET) {
-                                viewModel.stopSpeaking()
-                            } else {
-                                viewModel.speakTranslatedText()
-                            }
-                        }) {
+                        IconButton(
+                            onClick = {
+                                if (isSpeaking && currentTtsType == com.example.test0.viewmodel.SpeechTranslationViewModel.TtsType.TARGET) {
+                                    viewModel.stopSpeaking()
+                                } else {
+                                    viewModel.speakTranslatedText()
+                                }
+                            },
+                            enabled = !isRecording
+                        ) {
                             Icon(
                                 imageVector = if (isSpeaking && currentTtsType == com.example.test0.viewmodel.SpeechTranslationViewModel.TtsType.TARGET) Icons.Default.StopCircle else Icons.Default.VolumeUp,
-                                contentDescription = if (isSpeaking && currentTtsType == com.example.test0.viewmodel.SpeechTranslationViewModel.TtsType.TARGET) "停止朗读" else "朗读"
+                                contentDescription = if (isSpeaking && currentTtsType == com.example.test0.viewmodel.SpeechTranslationViewModel.TtsType.TARGET) "停止朗读" else "朗读",
+                                tint = if (!isRecording) LocalContentColor.current else Color.Gray
                             )
                         }
-                        IconButton(onClick = {
-                            clipboardManager.setText(AnnotatedString(translatedText))
-                        }) {
-                            Icon(Icons.Default.ContentCopy, contentDescription = "复制")
+                        IconButton(
+                            onClick = {
+                                if (translatedText.isNotEmpty()) {
+                                    clipboardManager.setText(AnnotatedString(translatedText))
+                                }
+                            },
+                            enabled = !isRecording
+                        ) {
+                            Icon(
+                                Icons.Default.ContentCopy, 
+                                contentDescription = "复制",
+                                tint = if (!isRecording) LocalContentColor.current else Color.Gray
+                            )
                         }
                     }
                 }
@@ -321,15 +419,15 @@ fun SpeechTranslationScreen(
                         } else {
                             // 开始录音
                             if (recordAudioPermission.status == PermissionStatus.Granted) {
-                                viewModel.startStreamingRecognition(
+                            viewModel.startStreamingRecognition(
                                     onResult = { source, translated ->
                                         viewModel.updateSourceText(source)
                                         viewModel.updateTranslatedText(translated)
-                                    },
+                                },
                                     onError = { errorMsg ->
                                         // 错误会通过viewModel.errorMessage显示
                                     }
-                                )
+                            )
                             } else {
                                 recordAudioPermission.launchPermissionRequest()
                             }
@@ -338,8 +436,14 @@ fun SpeechTranslationScreen(
                     modifier = Modifier
                         .size(60.dp), // 使用size确保圆形
                     shape = RoundedCornerShape(30.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                    contentPadding = PaddingValues(0.dp)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isProcessingQueue && !isRecording) 
+                            Color.Gray 
+                        else 
+                            MaterialTheme.colorScheme.secondary
+                    ),
+                    contentPadding = PaddingValues(0.dp),
+                    enabled = !isProcessingQueue || isRecording // 队列处理时禁用，除非正在录音
                 ) {
                     Icon(
                         imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,
@@ -396,4 +500,4 @@ fun VolumeIndicator(
             )
         }
     }
-}
+} 

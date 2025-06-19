@@ -1,9 +1,11 @@
 package com.example.test0.config
 
+import com.example.test0.BuildConfig
+
 object TencentConfig {
-    const val SECRET_ID = "AKIDRmwvmTzJXbUIzTlpgKn5A2h9OQE5pPo4"
-    const val SECRET_KEY = "9E8wb5OWVJySltqdMuHcsy6B6OYYO3Zv"
-    const val APP_ID= "1331792388"
+    val SECRET_ID = BuildConfig.TENCENT_SECRET_ID
+    val SECRET_KEY = BuildConfig.TENCENT_SECRET_KEY
+    val APP_ID = BuildConfig.TENCENT_APP_ID
+    val REGION = BuildConfig.TENCENT_REGION
     const val ENDPOINT = "tmt.tencentcloudapi.com"
-    const val REGION = "ap-guangzhou"
 } 

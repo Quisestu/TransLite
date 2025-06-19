@@ -26,6 +26,7 @@ android {
             buildConfigField("String", "TENCENT_APP_ID", "\"${localProps.getProperty("TENCENT_APP_ID") ?: ""}\"")
             buildConfigField("String", "TENCENT_SECRET_ID", "\"${localProps.getProperty("TENCENT_SECRET_ID") ?: ""}\"")
             buildConfigField("String", "TENCENT_SECRET_KEY", "\"${localProps.getProperty("TENCENT_SECRET_KEY") ?: ""}\"")
+            buildConfigField("String", "TENCENT_REGION", "\"${localProps.getProperty("TENCENT_REGION") ?: "ap-guangzhou"}\"")
         }
     }
 
