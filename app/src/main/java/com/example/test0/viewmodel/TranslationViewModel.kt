@@ -26,12 +26,15 @@ import kotlinx.coroutines.CancellationException
 import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import com.example.test0.repository.TranslationRepository
+import com.example.test0.model.TranslationType
 
 class TranslationViewModel(application: Application) : AndroidViewModel(application) {
 
     // Services
     private val translationService = TencentTranslationService()
     private val textToSpeechService = TextToSpeechService(application.applicationContext)
+    private val translationRepository = TranslationRepository.getInstance(application.applicationContext)
 
     // State for UI
     private val _uiState = MutableStateFlow<TranslationUiState>(TranslationUiState.Initial)
@@ -242,6 +245,31 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
                 // 检查是否应该忽略翻译结果（用户可能已经点击了清除）
                 if (!shouldIgnoreTranslation) {
                     _translatedText.value = result
+                    
+                    // 保存历史记录（使用实际的源语言，不使用AUTO）
+                    val actualSourceLanguage = if (_isAutoDetected.value && _detectedLanguage.value != null) {
+                        _detectedLanguage.value!!
+                    } else {
+                        _sourceLanguage.value
+                    }
+                    
+                    // 只有在不是AUTO的情况下才保存
+                    if (actualSourceLanguage != Language.AUTO) {
+                        viewModelScope.launch {
+                            try {
+                                translationRepository.saveRecord(
+                                    sourceText = _sourceText.value,
+                                    translatedText = result,
+                                    sourceLanguage = actualSourceLanguage.displayName,
+                                    targetLanguage = _targetLanguage.value.displayName,
+                                    type = TranslationType.TEXT
+                                )
+                                Log.i("TranslationVM", "Translation record saved to history")
+                            } catch (e: Exception) {
+                                Log.e("TranslationVM", "Failed to save translation record: ${e.message}", e)
+                            }
+                        }
+                    }
                 } else {
                     Log.i("TranslationVM", "Translation result ignored due to user clear action")
                 }

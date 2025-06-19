@@ -25,8 +25,6 @@ cd Test0
 1. 注册并登录 [腾讯云控制台](https://cloud.tencent.com/)
 2. 开通以下服务：
    - [机器翻译 TMT](https://console.cloud.tencent.com/tmt)
-   - [语音识别 ASR](https://console.cloud.tencent.com/asr)
-   - [文字识别 OCR](https://console.cloud.tencent.com/ocr)
 3. 获取API密钥：访问 [API密钥管理](https://console.cloud.tencent.com/cam/capi)
    - 记录您的 `SecretId` 和 `SecretKey`
    - 记录您的应用ID（AppId）
@@ -128,10 +126,6 @@ A: 检查网络连接和腾讯云服务是否正常开通
 **Q: 语音识别无响应**  
 A: 确认已授予录音权限，并检查设备音频设置
 
-## 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
 ## 许可证
 
-[在这里添加您的许可证信息] 
+本项目为个人学习项目，仅供学习和参考使用。 

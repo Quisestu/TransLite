@@ -54,6 +54,7 @@ import androidx.compose.material3.LocalContentColor
 @Composable
 fun SpeechTranslationScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToHistory: () -> Unit,
     themeMode: AppThemeMode,
     onThemeSwitch: (AppThemeMode) -> Unit,
     viewModel: SpeechTranslationViewModel
@@ -118,11 +119,11 @@ fun SpeechTranslationScreen(
                     }
                 },
                 actions = {
-                    // 占位
-                    IconButton(onClick = {}) {
+                    // 历史记录按钮
+                    IconButton(onClick = onNavigateToHistory) {
                         Icon(
                             Icons.Default.History, 
-                            contentDescription = "",
+                            contentDescription = "历史记录",
                             tint = MaterialTheme.colorScheme.onPrimary
                             )
                     }

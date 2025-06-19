@@ -61,6 +61,7 @@ import java.io.File
 @Composable
 fun ImageTranslationScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToHistory: () -> Unit,
     themeMode: AppThemeMode,
     onThemeSwitch: (AppThemeMode) -> Unit,
     viewModel: ImageTranslationViewModel = viewModel()
@@ -215,11 +216,11 @@ fun ImageTranslationScreen(
                     }
                 },
                 actions = {
-                    // 占位
-                    IconButton(onClick = {}) {
+                    // 历史记录按钮
+                    IconButton(onClick = onNavigateToHistory) {
                         Icon(
                             Icons.Default.History, 
-                            contentDescription = "",
+                            contentDescription = "历史记录",
                             tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }

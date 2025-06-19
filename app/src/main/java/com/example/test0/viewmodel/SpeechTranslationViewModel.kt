@@ -15,10 +15,14 @@ import com.example.test0.BuildConfig
 import android.Manifest
 import androidx.annotation.RequiresPermission
 import kotlinx.coroutines.delay
+import com.example.test0.repository.TranslationRepository
+import com.example.test0.model.TranslationType
+import android.util.Log
 
 class SpeechTranslationViewModel(application: Application) : AndroidViewModel(application) {
     private val supportedLanguages = listOf(Language.CHINESE, Language.ENGLISH)
     private val textToSpeechService = TextToSpeechService(application.applicationContext)
+    private val translationRepository = TranslationRepository.getInstance(application.applicationContext)
 
     private val _sourceLanguage = MutableStateFlow(Language.CHINESE)
     val sourceLanguage: StateFlow<Language> = _sourceLanguage.asStateFlow()
@@ -169,6 +173,33 @@ class SpeechTranslationViewModel(application: Application) : AndroidViewModel(ap
     fun stopStreamingRecognition() {
         stopRecordingAndReset()
         streamingService?.stopStreaming()
+        
+        // 在录音结束时保存历史记录（一次录音整体保存）
+        viewModelScope.launch {
+            // 等待队列处理完成
+            while (_isProcessingQueue.value) {
+                delay(100)
+            }
+            
+            // 检查是否应该保存记录
+            val sourceText = _sourceText.value
+            val translatedText = _translatedText.value
+            
+            if (!shouldIgnoreTranslation && sourceText.isNotBlank() && translatedText.isNotBlank()) {
+                try {
+                    translationRepository.saveRecord(
+                        sourceText = sourceText,
+                        translatedText = translatedText,
+                        sourceLanguage = _sourceLanguage.value.displayName,
+                        targetLanguage = _targetLanguage.value.displayName,
+                        type = TranslationType.SPEECH
+                    )
+                    Log.i("SpeechTranslationVM", "Speech translation record saved to history")
+                } catch (e: Exception) {
+                    Log.e("SpeechTranslationVM", "Failed to save speech translation record: ${e.message}", e)
+                }
+            }
+        }
     }
     
     private fun startCountdown() {

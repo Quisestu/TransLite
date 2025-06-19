@@ -75,6 +75,7 @@ import androidx.compose.ui.text.AnnotatedString
 fun TextTranslationScreen(
     onNavigateToSpeech: () -> Unit,
     onNavigateToImage: () -> Unit,
+    onNavigateToHistory: () -> Unit,
     themeMode: AppThemeMode,
     onThemeSwitch: (AppThemeMode) -> Unit,
     viewModel: TranslationViewModel = viewModel()
@@ -131,11 +132,11 @@ fun TextTranslationScreen(
                     )
                 },
                 actions = {
-                    // 占位
-                    IconButton(onClick = {}) {
+                    // 历史记录按钮
+                    IconButton(onClick = onNavigateToHistory) {
                         Icon(
                             Icons.Default.History, 
-                            contentDescription = "",
+                            contentDescription = "历史记录",
                             tint = MaterialTheme.colorScheme.onPrimary
                             )
                     }

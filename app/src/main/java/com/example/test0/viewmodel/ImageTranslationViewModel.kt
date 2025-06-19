@@ -16,12 +16,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
+import com.example.test0.repository.TranslationRepository
+import com.example.test0.model.TranslationType
 
 class ImageTranslationViewModel(application: Application) : AndroidViewModel(application) {
 
     // Services
     private val imageTranslationService = ImageTranslationService()
     private val textToSpeechService = TextToSpeechService(application.applicationContext)
+    private val translationRepository = TranslationRepository.getInstance(application.applicationContext)
 
     // Language selection
     private val _sourceLanguage = MutableStateFlow(ImageLanguage.AUTO)
@@ -145,6 +148,31 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
                         _availableTargetLanguages.value = availableTargetLanguages
                         if (_targetLanguage.value !in availableTargetLanguages) {
                             _targetLanguage.value = availableTargetLanguages.first()
+                        }
+                    }
+                    
+                    // 保存历史记录（使用实际的源语言，不使用AUTO）
+                    val actualSourceLanguage = if (_isAutoDetected.value && _detectedLanguage.value != null) {
+                        _detectedLanguage.value!!
+                    } else {
+                        _sourceLanguage.value
+                    }
+                    
+                    // 只有在不是AUTO的情况下才保存
+                    if (actualSourceLanguage != ImageLanguage.AUTO) {
+                        viewModelScope.launch {
+                            try {
+                                translationRepository.saveRecord(
+                                    sourceText = result.sourceText,  // 拼装后的结果
+                                    translatedText = result.translatedText,  // 拼装后的结果
+                                    sourceLanguage = actualSourceLanguage.displayName,
+                                    targetLanguage = _targetLanguage.value.displayName,
+                                    type = TranslationType.IMAGE
+                                )
+                                Log.i("ImageTranslationVM", "Image translation record saved to history")
+                            } catch (e: Exception) {
+                                Log.e("ImageTranslationVM", "Failed to save image translation record: ${e.message}", e)
+                            }
                         }
                     }
                 } else {

@@ -30,22 +30,24 @@ fun Test0Theme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         darkTheme -> darkColorScheme(
-            primary = Color(0xFF90CAF9),           // 浅蓝主色（Blue 200）
-            onPrimary = Color(0xFF00325A),
-            primaryContainer = Color(0xFF1565C0),  // 深蓝容器
-            onPrimaryContainer = Color(0xFFD2E4FF),
-            secondary = Color(0xFF64B5F6),         // 亮蓝副色（Blue 300/400）
-            onSecondary = Color(0xFF00325A),
-            secondaryContainer = Color(0xFF1565C0),
-            onSecondaryContainer = Color(0xFFD2E4FF),
+            primary = Color(0xFF1A237E),           // 深蓝主色（Indigo 900）
+            onPrimary = Color(0xFFE8EAF6),         // 浅紫蓝文字
+            primaryContainer = Color(0xFF3F51B5),  // 中蓝容器（Indigo 500）
+            onPrimaryContainer = Color(0xFFE8EAF6),
+            secondary = Color(0xFF5C6BC0),         // 中紫蓝副色（Indigo 400）
+            onSecondary = Color(0xFFFFFFFF),
+            secondaryContainer = Color(0xFF303F9F),// 深紫蓝容器（Indigo 700）
+            onSecondaryContainer = Color(0xFFE8EAF6),
             tertiary = Color(0xFF4DD0E1),          // 青蓝强调色（Cyan 300）
             onTertiary = Color(0xFF00363A),
             tertiaryContainer = Color(0xFF006064),
             onTertiaryContainer = Color(0xFFE0F7FA),
-            background = Color(0xFF0A1929),
-            onBackground = Color(0xFFE3F2FD),
-            surface = Color(0xFF121212),
-            onSurface = Color(0xFFE3F2FD),
+            background = Color(0xFF0D1B2A),        // 深蓝背景
+            onBackground = Color(0xFFE8EAF6),
+            surface = Color(0xFF283593),           // 中深蓝表面（比primary稍亮）
+            onSurface = Color(0xFFE8EAF6),
+            error = Color(0xFFFF5252),            // 红色错误提示
+            onError = Color(0xFF000000),
         )
         else -> lightColorScheme(
             primary = Color(0xFF42A5F5),           // 亮蓝色主色（Blue 400）
