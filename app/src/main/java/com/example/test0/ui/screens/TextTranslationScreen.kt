@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.StopCircle
@@ -288,7 +289,15 @@ fun TextTranslationScreen(
                                 onClick = { viewModel.translate() },
                                 enabled = charCount in 1..2000 && canTranslate && !isTranslating && !(sourceLanguage == Language.AUTO && isDetectingLanguage)
                             ) {
-                                Icon(Icons.Default.Send, contentDescription = "发送")
+                                if (isTranslating) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                } else {
+                                    Icon(Icons.Default.Send, contentDescription = "发送")
+                                }
                             }
                         }
                     }

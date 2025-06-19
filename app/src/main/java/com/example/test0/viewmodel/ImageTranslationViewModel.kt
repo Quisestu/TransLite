@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 
 class ImageTranslationViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -68,6 +69,7 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
     val errorMessage = _errorMessage.asStateFlow()
 
     private var detectLanguageJob: Job? = null
+    private var translateJob: Job? = null
     private var shouldIgnoreTranslation = false // 是否忽略翻译结果（清除时使用）
 
     init {
@@ -93,8 +95,24 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
 
     fun translateImage(bitmap: Bitmap) {
         shouldIgnoreTranslation = false // 重置忽略标志
+        
+        // 立即清空文本显示区（类似语音翻译开始录音时立即清空）
+        _sourceText.value = ""
+        _translatedText.value = ""
+        
+        // 重置自动检测状态到初始状态（开始新翻译时）
+        if (_sourceLanguage.value == ImageLanguage.AUTO) {
+            _isAutoDetected.value = false
+            _detectedLanguage.value = null
+            val autoTargetLanguages = ImageLanguage.getTargetLanguages(ImageLanguage.AUTO)
+            _availableTargetLanguages.value = autoTargetLanguages
+            if (_targetLanguage.value !in autoTargetLanguages) {
+                _targetLanguage.value = autoTargetLanguages.first()
+            }
+        }
+        
         _isTranslating.value = true
-        viewModelScope.launch {
+        translateJob = viewModelScope.launch {
             try {
                 Log.i("ImageTranslationVM", "Image translation started: ${_sourceLanguage.value.displayName} -> ${_targetLanguage.value.displayName}")
                 
@@ -124,6 +142,10 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
                     Log.i("ImageTranslationVM", "Translation result ignored due to user clear action")
                 }
                 
+            } catch (e: CancellationException) {
+                // 协程取消是正常操作（用户点击清除），不显示错误
+                Log.d("ImageTranslationVM", "Image translation cancelled by user")
+                throw e // 重新抛出CancellationException以正确处理协程取消
             } catch (e: Exception) {
                 // 只有在没有被忽略时才显示错误
                 if (!shouldIgnoreTranslation) {
@@ -187,12 +209,26 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
         // 设置忽略翻译标志，类似语音翻译的逻辑
         shouldIgnoreTranslation = true
         
-        // 立即清空文本和重置状态
+        // 取消正在进行的翻译任务
+        translateJob?.cancel()
+        
+        // 立即清空文本和重置状态到初始状态
         _sourceText.value = ""
         _translatedText.value = ""
         _isAutoDetected.value = false
         _detectedLanguage.value = null
         _isTranslating.value = false // 立即恢复按钮状态
+        
+        // 如果当前是自动检测模式，重置目标语言列表为AUTO对应的列表
+        if (_sourceLanguage.value == ImageLanguage.AUTO) {
+            val autoTargetLanguages = ImageLanguage.getTargetLanguages(ImageLanguage.AUTO)
+            _availableTargetLanguages.value = autoTargetLanguages
+            // 如果当前目标语言不在AUTO的列表中，重置为第一个
+            if (_targetLanguage.value !in autoTargetLanguages) {
+                _targetLanguage.value = autoTargetLanguages.first()
+            }
+        }
+        
         stopSpeaking()
         
         // 延迟重置忽略标志，确保清除操作完成

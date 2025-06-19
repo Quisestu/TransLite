@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import com.example.test0.BuildConfig
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -77,6 +78,7 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
 
     // 在 TranslationViewModel 类中添加一个 Job 变量
     private var detectLanguageJob: Job? = null
+    private var translateJob: Job? = null
 
     // 添加 isDetectingLanguage 状态
     private val _isDetectingLanguage = MutableStateFlow(false)
@@ -85,6 +87,9 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     // 源文本字符计数
     private val _sourceTextCharCount = MutableStateFlow(0)
     val sourceTextCharCount = _sourceTextCharCount.asStateFlow()
+
+    // 是否忽略翻译结果（清除时使用）
+    private var shouldIgnoreTranslation = false
 
     enum class TtsType { SOURCE, TARGET }
     private val _currentTtsType = MutableStateFlow<TtsType?>(null)
@@ -116,19 +121,32 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
                         Log.i("TranslationVM", "Language detection started")
                         val detected = translationService.detectLanguage(text)
                         Log.i("TranslationVM", "Language detected: ${detected.displayName}")
-                        _detectedLanguage.value = detected
-                        _isAutoDetected.value = true
-                        val detectedTargets = Language.getTargetLanguages(detected)
-                        _availableTargetLanguages.value = detectedTargets
-                        if (!_availableTargetLanguages.value.contains(_targetLanguage.value)) {
-                            _targetLanguage.value = detectedTargets.first()
+                        
+                        // 检查是否应该忽略检测结果
+                        if (!shouldIgnoreTranslation) {
+                            _detectedLanguage.value = detected
+                            _isAutoDetected.value = true
+                            val detectedTargets = Language.getTargetLanguages(detected)
+                            _availableTargetLanguages.value = detectedTargets
+                            if (!_availableTargetLanguages.value.contains(_targetLanguage.value)) {
+                                _targetLanguage.value = detectedTargets.first()
+                            }
+                        } else {
+                            Log.i("TranslationVM", "Language detection result ignored due to user clear action")
                         }
+                    } catch (e: CancellationException) {
+                        // 协程取消是正常操作（用户点击清除），不显示错误
+                        Log.d("TranslationVM", "Language detection cancelled by user")
+                        throw e // 重新抛出CancellationException以正确处理协程取消
                     } catch (e: Exception) {
-                        Log.e("TranslationVM", "Language detection failed: ${e.message}", e)
-                        _isAutoDetected.value = false
-                        _detectedLanguage.value = null
-                        _canTranslate.value = false
-                        _uiState.value = TranslationUiState.Error("语言检测失败: ${e.message}")
+                        // 只有在没有被忽略时才显示错误
+                        if (!shouldIgnoreTranslation) {
+                            Log.e("TranslationVM", "Language detection failed: ${e.message}", e)
+                            _isAutoDetected.value = false
+                            _detectedLanguage.value = null
+                            _canTranslate.value = false
+                            _uiState.value = TranslationUiState.Error("语言检测失败: ${e.message}")
+                        }
                     } finally {
                         _isDetectingLanguage.value = false
                     }
@@ -149,33 +167,56 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
         if (text.isEmpty()) {
             // 确保取消当前的检测任务
             detectLanguageJob?.cancel()
-            // 文本为空时重置检测状态
+            // 文本为空时重置检测状态到初始状态
             _isAutoDetected.value = false
             _detectedLanguage.value = null
             _translatedText.value = ""
+            
+            // 如果当前是自动检测模式，重置目标语言列表为AUTO对应的列表
+            if (_sourceLanguage.value == Language.AUTO) {
+                val autoTargetLanguages = Language.getTargetLanguages(Language.AUTO)
+                _availableTargetLanguages.value = autoTargetLanguages
+                // 如果当前目标语言不在AUTO的列表中，重置为第一个
+                if (_targetLanguage.value !in autoTargetLanguages) {
+                    _targetLanguage.value = autoTargetLanguages.first()
+                }
+            }
         } else if (_sourceLanguage.value == Language.AUTO) {
             detectLanguageJob?.cancel()
             detectLanguageJob = viewModelScope.launch {
                 _isDetectingLanguage.value = true
                 delay(250)
-                try {
-                    Log.i("TranslationVM", "Language detection started")
-                    val detected = translationService.detectLanguage(text)
-                    Log.i("TranslationVM", "Language detected: ${detected.displayName}")
-                    _detectedLanguage.value = detected
-                    _isAutoDetected.value = true
-                    val availableTargetLanguages = Language.getTargetLanguages(detected)
-                    _availableTargetLanguages.value = availableTargetLanguages
-                    if (!_availableTargetLanguages.value.contains(_targetLanguage.value)) {
-                        _targetLanguage.value = availableTargetLanguages.first()
-                    }
-                } catch (e: Exception) {
-                    Log.e("TranslationVM", "Language detection failed: ${e.message}", e)
-                    _isAutoDetected.value = false
-                    _detectedLanguage.value = null
-                    _canTranslate.value = false
-                    _uiState.value = TranslationUiState.Error("语言检测失败: ${e.message}")
-                } finally {
+                                    try {
+                        Log.i("TranslationVM", "Language detection started")
+                        val detected = translationService.detectLanguage(text)
+                        Log.i("TranslationVM", "Language detected: ${detected.displayName}")
+                        
+                        // 检查是否应该忽略检测结果
+                        if (!shouldIgnoreTranslation) {
+                            _detectedLanguage.value = detected
+                            _isAutoDetected.value = true
+                            val availableTargetLanguages = Language.getTargetLanguages(detected)
+                            _availableTargetLanguages.value = availableTargetLanguages
+                            if (!_availableTargetLanguages.value.contains(_targetLanguage.value)) {
+                                _targetLanguage.value = availableTargetLanguages.first()
+                            }
+                        } else {
+                            Log.i("TranslationVM", "Language detection result ignored due to user clear action")
+                        }
+                    } catch (e: CancellationException) {
+                        // 协程取消是正常操作（用户点击清除），不显示错误
+                        Log.d("TranslationVM", "Language detection cancelled by user")
+                        throw e // 重新抛出CancellationException以正确处理协程取消
+                    } catch (e: Exception) {
+                        // 只有在没有被忽略时才显示错误
+                        if (!shouldIgnoreTranslation) {
+                            Log.e("TranslationVM", "Language detection failed: ${e.message}", e)
+                            _isAutoDetected.value = false
+                            _detectedLanguage.value = null
+                            _canTranslate.value = false
+                            _uiState.value = TranslationUiState.Error("语言检测失败: ${e.message}")
+                        }
+                    } finally {
                     _isDetectingLanguage.value = false
                 }
             }
@@ -183,7 +224,8 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun translate() {
-        viewModelScope.launch {
+        shouldIgnoreTranslation = false // 重置忽略标志
+        translateJob = viewModelScope.launch {
             _isTranslating.value = true
             try {
                 // 开始翻译
@@ -196,11 +238,23 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
                 )
                 
                 Log.i("TranslationVM", "Translation completed successfully")
-                _translatedText.value = result
-                _isTranslating.value = false
+                
+                // 检查是否应该忽略翻译结果（用户可能已经点击了清除）
+                if (!shouldIgnoreTranslation) {
+                    _translatedText.value = result
+                } else {
+                    Log.i("TranslationVM", "Translation result ignored due to user clear action")
+                }
+            } catch (e: CancellationException) {
+                // 协程取消是正常操作（用户点击清除），不显示错误
+                Log.d("TranslationVM", "Translation cancelled by user")
+                throw e // 重新抛出CancellationException以正确处理协程取消
             } catch (e: Exception) {
-                Log.e("TranslationVM", "Translation failed: ${e.message}", e)
-                _uiState.value = TranslationUiState.Error("翻译失败: ${e.message}")
+                // 只有在没有被忽略时才显示错误
+                if (!shouldIgnoreTranslation) {
+                    Log.e("TranslationVM", "Translation failed: ${e.message}", e)
+                    _uiState.value = TranslationUiState.Error("翻译失败: ${e.message}")
+                }
             } finally {
                 _isTranslating.value = false
             }
@@ -245,14 +299,41 @@ class TranslationViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun clearSourceText() {
+        // 设置忽略翻译标志，类似语音翻译和图片翻译的逻辑
+        shouldIgnoreTranslation = true
+        
+        // 取消正在进行的语言检测任务和翻译任务
+        detectLanguageJob?.cancel()
+        translateJob?.cancel()
+        
+        // 立即清空文本和重置状态
         _sourceText.value = ""
         _translatedText.value = ""
         _sourceTextCharCount.value = 0
         _canTranslate.value = false
-        // 清除时也重置检测状态
+        _isTranslating.value = false // 立即恢复按钮状态
+        _isDetectingLanguage.value = false // 重置检测状态
+        // 清除时也重置检测状态到初始状态
         _isAutoDetected.value = false
         _detectedLanguage.value = null
+        
+        // 如果当前是自动检测模式，重置目标语言列表为AUTO对应的列表
+        if (_sourceLanguage.value == Language.AUTO) {
+            val autoTargetLanguages = Language.getTargetLanguages(Language.AUTO)
+            _availableTargetLanguages.value = autoTargetLanguages
+            // 如果当前目标语言不在AUTO的列表中，重置为第一个
+            if (_targetLanguage.value !in autoTargetLanguages) {
+                _targetLanguage.value = autoTargetLanguages.first()
+            }
+        }
+        
         stopSpeaking()
+        
+        // 延迟重置忽略标志，确保清除操作完成
+        viewModelScope.launch {
+            delay(500)
+            shouldIgnoreTranslation = false
+        }
     }
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)

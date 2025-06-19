@@ -40,7 +40,7 @@ enum class ImageLanguage(
                     ITALIAN, SPANISH, PORTUGUESE, MALAY, THAI, VIETNAMESE
                 )
                 ENGLISH -> listOf(
-                    ENGLISH,JAPANESE, KOREAN, RUSSIAN, FRENCH, GERMAN,
+                    CHINESE,JAPANESE, KOREAN, RUSSIAN, FRENCH, GERMAN,
                     ITALIAN, SPANISH, PORTUGUESE, MALAY, THAI, VIETNAMESE
                 )
                 JAPANESE -> listOf(CHINESE, ENGLISH, KOREAN)

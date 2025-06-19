@@ -196,7 +196,12 @@ class TencentStreamingSpeechService(
     }
 
     // 简化的发送方法，失败直接跳过，保持时序连续性
+    // 最后一个分片失败时会重试
     private suspend fun sendAudioChunk(audioData: ByteArray, seq: Int, isEnd: Boolean) {
+        return sendAudioChunkWithRetry(audioData, seq, isEnd, 0)
+    }
+    
+    private suspend fun sendAudioChunkWithRetry(audioData: ByteArray, seq: Int, isEnd: Boolean, retryCount: Int) {
         val requestStartTime = System.currentTimeMillis()
         
         try {
@@ -286,16 +291,36 @@ class TencentStreamingSpeechService(
                 Log.i(DELAY_TAG, "分片 $seq 成功处理，总耗时: ${totalLatency}ms")
                 Log.i(DELAY_TAG, "分片 $seq 延迟分解 - 上传: ${uploadTime}ms, 处理: ${processingTime}ms, 下载: ${downloadTime}ms")
             } else {
-                // 记录错误并直接跳过，保持时序连续性
-                Log.w(TAG, "分片 $seq 发送失败: ${response.code} - $responseBody，跳过继续")
+                // 记录错误，对于最后一个分片尝试重试
+                Log.w(TAG, "分片 $seq 发送失败: ${response.code} - $responseBody")
                 Log.w(DELAY_TAG, "分片 $seq 失败，耗时: ${totalLatency}ms，错误码: ${response.code}")
+                
+                // 只对最后一个分片进行重试，且重试次数不超过2次
+                if (isEnd && retryCount < 2) {
+                    Log.i(TAG, "最后一个分片失败，1秒后进行第${retryCount + 1}次重试")
+                    delay(1000) // 延迟1秒
+                    sendAudioChunkWithRetry(audioData, seq, isEnd, retryCount + 1)
+                    return
+                } else if (isEnd) {
+                    Log.e(TAG, "最后一个分片重试${retryCount}次后仍然失败，可能导致译文丢失")
+                }
             }
         } catch (e: Exception) {
             val requestEndTime = System.currentTimeMillis()
             val totalLatency = requestEndTime - requestStartTime
-            // 记录异常并直接跳过，保持时序连续性
-            Log.w(TAG, "分片 $seq 请求异常: ${e.message}，跳过继续")
+            // 记录异常，对于最后一个分片尝试重试
+            Log.w(TAG, "分片 $seq 请求异常: ${e.message}")
             Log.w(DELAY_TAG, "分片 $seq 异常，耗时: ${totalLatency}ms，异常: ${e.message}")
+            
+            // 只对最后一个分片进行重试，且重试次数不超过2次
+            if (isEnd && retryCount < 2) {
+                Log.i(TAG, "最后一个分片异常，1秒后进行第${retryCount + 1}次重试")
+                delay(1000) // 延迟1秒
+                sendAudioChunkWithRetry(audioData, seq, isEnd, retryCount + 1)
+                return
+            } else if (isEnd) {
+                Log.e(TAG, "最后一个分片重试${retryCount}次后仍然异常，可能导致译文丢失")
+            }
         }
     }
 
