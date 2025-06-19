@@ -176,7 +176,8 @@ fun SpeechTranslationScreen(
                 )
                 IconButton(
                     onClick = { viewModel.swapLanguages() },
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    enabled = !isRecording && !isProcessingQueue
                 ) {
                     Icon(Icons.Default.SwapHoriz, contentDescription = "交换语言")
                 }

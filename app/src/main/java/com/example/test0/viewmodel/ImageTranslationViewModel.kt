@@ -93,15 +93,15 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
         _targetLanguage.value = language
     }
 
-    fun translateImage(bitmap: Bitmap) {
+    fun translateImage(bitmap: Bitmap, shouldResetDetection: Boolean = true) {
         shouldIgnoreTranslation = false // 重置忽略标志
         
         // 立即清空文本显示区（类似语音翻译开始录音时立即清空）
         _sourceText.value = ""
         _translatedText.value = ""
         
-        // 重置自动检测状态到初始状态（开始新翻译时）
-        if (_sourceLanguage.value == ImageLanguage.AUTO) {
+        // 只有在选择新图片时才重置自动检测状态
+        if (shouldResetDetection && _sourceLanguage.value == ImageLanguage.AUTO) {
             _isAutoDetected.value = false
             _detectedLanguage.value = null
             val autoTargetLanguages = ImageLanguage.getTargetLanguages(ImageLanguage.AUTO)
@@ -132,7 +132,16 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
                     if (_sourceLanguage.value == ImageLanguage.AUTO) {
                         _detectedLanguage.value = result.detectedLanguage
                         _isAutoDetected.value = true
-                        val availableTargetLanguages = ImageLanguage.getTargetLanguages(result.detectedLanguage)
+                        
+                        // 使用隐藏的检测项来获取目标语言列表
+                        val detectedHiddenLanguage = ImageLanguage.getDetectedLanguage(result.detectedLanguage.code)
+                        val availableTargetLanguages = if (detectedHiddenLanguage != null) {
+                            ImageLanguage.getTargetLanguages(detectedHiddenLanguage)
+                        } else {
+                            // 如果没有对应的隐藏项，使用原来的逻辑
+                            ImageLanguage.getTargetLanguages(result.detectedLanguage)
+                        }
+                        
                         _availableTargetLanguages.value = availableTargetLanguages
                         if (_targetLanguage.value !in availableTargetLanguages) {
                             _targetLanguage.value = availableTargetLanguages.first()
@@ -249,8 +258,8 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
     // 转换ImageLanguage到原始Language枚举（用于TTS）
     private fun convertToOriginalLanguage(imageLanguage: ImageLanguage): com.example.test0.model.Language {
         return when (imageLanguage) {
-            ImageLanguage.CHINESE -> com.example.test0.model.Language.CHINESE
-            ImageLanguage.ENGLISH -> com.example.test0.model.Language.ENGLISH
+            ImageLanguage.CHINESE, ImageLanguage.DETECTED_CHINESE -> com.example.test0.model.Language.CHINESE
+            ImageLanguage.ENGLISH, ImageLanguage.DETECTED_ENGLISH -> com.example.test0.model.Language.ENGLISH
             ImageLanguage.JAPANESE -> com.example.test0.model.Language.JAPANESE
             ImageLanguage.KOREAN -> com.example.test0.model.Language.KOREAN
             ImageLanguage.RUSSIAN -> com.example.test0.model.Language.RUSSIAN

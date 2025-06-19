@@ -185,13 +185,15 @@ fun TextTranslationScreen(
                     onLanguageSelected = { viewModel.updateSourceLanguage(it) },
                     modifier = Modifier.weight(1f),
                     label = "源语言",
-                    isDetected = isAutoDetected && detectedLanguage != null
+                    isDetected = isAutoDetected && detectedLanguage != null,
+                    enabled = !isTranslating && !isDetectingLanguage
                 )
 
                 // 交换按钮
                 IconButton(
                     onClick = { viewModel.swapLanguages() },
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    enabled = !isTranslating && !isDetectingLanguage
                 ) {
                     Icon(Icons.Default.SwapHoriz, contentDescription = "交换语言")
                 }
@@ -202,7 +204,8 @@ fun TextTranslationScreen(
                     languages = availableTargetLanguages,
                     onLanguageSelected = { viewModel.updateTargetLanguage(it) },
                     modifier = Modifier.weight(1f),
-                    label = "目标语言"
+                    label = "目标语言",
+                    enabled = !isTranslating && !isDetectingLanguage
                 )
             }
 

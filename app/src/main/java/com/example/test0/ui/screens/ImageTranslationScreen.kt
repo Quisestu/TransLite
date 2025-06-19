@@ -126,11 +126,11 @@ fun ImageTranslationScreen(
     ) { success ->
         if (success) {
             selectedImageUri = tempImageUri
-            // 转换图片并调用翻译API
+            // 转换图片并调用翻译API（新选择图片，重置检测状态）
             coroutineScope.launch {
                 val bitmap = uriToBitmap(tempImageUri)
                 if (bitmap != null) {
-                    viewModel.translateImage(bitmap)
+                    viewModel.translateImage(bitmap, shouldResetDetection = true)
                 }
             }
         }
@@ -169,11 +169,11 @@ fun ImageTranslationScreen(
     ) { uri ->
         uri?.let {
             selectedImageUri = it
-            // 转换图片并调用翻译API
+            // 转换图片并调用翻译API（新选择图片，重置检测状态）
             coroutineScope.launch {
                 val bitmap = uriToBitmap(it)
                 if (bitmap != null) {
-                    viewModel.translateImage(bitmap)
+                    viewModel.translateImage(bitmap, shouldResetDetection = true)
                 }
             }
         }
@@ -269,13 +269,15 @@ fun ImageTranslationScreen(
                     onLanguageSelected = { viewModel.updateSourceLanguage(it) },
                     modifier = Modifier.weight(1f),
                     label = "源语言",
-                    isDetected = isAutoDetected && detectedLanguage != null
+                    isDetected = isAutoDetected && detectedLanguage != null,
+                    enabled = !isTranslating
                 )
 
                 // 交换按钮
                 IconButton(
                     onClick = { viewModel.swapLanguages() },
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    enabled = !isTranslating
                 ) {
                     Icon(Icons.Default.SwapHoriz, contentDescription = "交换语言")
                 }
@@ -286,7 +288,8 @@ fun ImageTranslationScreen(
                     languages = availableTargetLanguages,
                     onLanguageSelected = { viewModel.updateTargetLanguage(it) },
                     modifier = Modifier.weight(1f),
-                    label = "目标语言"
+                    label = "目标语言",
+                    enabled = !isTranslating
                 )
             }
 
@@ -406,7 +409,7 @@ fun ImageTranslationScreen(
                                             coroutineScope.launch {
                                                 val bitmap = uriToBitmap(it)
                                                 if (bitmap != null) {
-                                                    viewModel.translateImage(bitmap)
+                                                    viewModel.translateImage(bitmap, shouldResetDetection = false)
                                                 }
                                             }
                                         },
