@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Test0"
+rootProject.name = "TransLite"
 include(":app")
