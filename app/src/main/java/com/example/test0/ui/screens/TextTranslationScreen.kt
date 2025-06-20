@@ -96,7 +96,7 @@ fun TextTranslationScreen(
     val targetScrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
 
-    // 自动滚动到底部 - 源文本输入框
+    // 源文本输入时自动滚动到底部
     LaunchedEffect(sourceText) {
         if (sourceText.isNotEmpty()) {
             coroutineScope.launch {
@@ -112,13 +112,13 @@ fun TextTranslationScreen(
         }
     }
 
-    // 自动滚动到底部 - 翻译结果
-    LaunchedEffect(translatedText) {
-        if (translatedText.isNotEmpty()) {
+    // 翻译完成后源文本滚动回顶部，便于对比查看
+    LaunchedEffect(isTranslating, translatedText) {
+        // 当翻译完成（不再翻译中）且有翻译结果时，滚动到顶部
+        if (!isTranslating && translatedText.isNotEmpty()) {
             coroutineScope.launch {
-                kotlinx.coroutines.delay(50)
-                // 翻译结果通常希望显示完整内容，总是滚动到底部
-                targetScrollState.animateScrollTo(targetScrollState.maxValue)
+                kotlinx.coroutines.delay(100) // 稍长延迟确保翻译结果完全显示
+                sourceScrollState.animateScrollTo(0)
             }
         }
     }
