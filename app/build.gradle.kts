@@ -12,7 +12,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.test0"
+        applicationId = "com.translite.app"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation("androidx.appcompat:appcompat:1.6.1")
     
     // Compose dependencies
     implementation(platform(libs.androidx.compose.bom))
