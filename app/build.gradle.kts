@@ -101,8 +101,9 @@ dependencies {
     // Okio for toByteString
     implementation("com.squareup.okio:okio:2.10.0")
     
-    // Testing
+    // Testing - 简化版本，只保留基本测试依赖
     testImplementation(libs.junit)
+    testImplementation("org.json:json:20230227")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
