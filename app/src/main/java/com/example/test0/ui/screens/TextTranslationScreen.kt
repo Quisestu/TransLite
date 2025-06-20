@@ -42,9 +42,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
@@ -91,6 +94,34 @@ fun TextTranslationScreen(
     // 新增：滚动状态
     val sourceScrollState = rememberScrollState()
     val targetScrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+
+    // 自动滚动到底部 - 源文本输入框
+    LaunchedEffect(sourceText) {
+        if (sourceText.isNotEmpty()) {
+            coroutineScope.launch {
+                // 稍微延迟以确保TextField布局完成
+                kotlinx.coroutines.delay(50)
+                // 只有当前滚动位置接近底部时（或没有滚动空间时）才自动滚动
+                val currentPosition = sourceScrollState.value
+                val maxPosition = sourceScrollState.maxValue
+                if (maxPosition == 0 || currentPosition >= maxPosition - 100) {
+                    sourceScrollState.animateScrollTo(maxPosition)
+                }
+            }
+        }
+    }
+
+    // 自动滚动到底部 - 翻译结果
+    LaunchedEffect(translatedText) {
+        if (translatedText.isNotEmpty()) {
+            coroutineScope.launch {
+                kotlinx.coroutines.delay(50)
+                // 翻译结果通常希望显示完整内容，总是滚动到底部
+                targetScrollState.animateScrollTo(targetScrollState.maxValue)
+            }
+        }
+    }
 
     val shadowsFont = FontFamily(Font(R.font.shadows_into_light_two_regular))
 
