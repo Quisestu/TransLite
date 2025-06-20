@@ -28,10 +28,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import com.example.test0.AppThemeMode
 import com.example.test0.AppThemeDataStore
+import com.example.test0.config.TencentConfig
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // 初始化TencentConfig
+        TencentConfig.initialize(this)
+        
         setContent {
             val context = LocalContext.current
             val systemDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()

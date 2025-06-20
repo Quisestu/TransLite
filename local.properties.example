@@ -1,22 +1,39 @@
-# 请复制此文件为 local.properties 并填入您的配置信息
-# 这个文件不会被提交到Git仓库
+# ============================================================================
+# 开发者配置文件 (可选)
+# ============================================================================
+# 
+# 此文件仅供开发者使用！普通用户无需创建或配置此文件。
+# 
+# 用途说明：
+# - 如果您是开发者，希望在开发环境中直接使用预设配置，可以填写此文件
+# - 如果您是普通用户，应用会在首次启动时引导您完成配置
+# 
+# 使用方法：
+# 1. 复制此文件为 local.properties
+# 2. 填入您在腾讯云控制台获取的真实配置信息
+# 3. 重新构建应用
+# 
+# ⚠️ 注意：这个文件不会被提交到Git仓库，请妥善保管您的密钥信息
+# ============================================================================
 
-# Android SDK路径 (Android Studio会自动生成)
+# Android SDK路径 (Android Studio会自动生成，无需手动填写)
 sdk.dir=YOUR_ANDROID_SDK_PATH
 
-# 腾讯云配置 - 请在腾讯云控制台获取以下信息
+# 腾讯云开发者配置 - 仅在希望跳过应用内配置时填写
 # 获取方式：https://console.cloud.tencent.com/cam/capi
 TENCENT_APP_ID=你的应用ID
 TENCENT_SECRET_ID=你的SecretId
 TENCENT_SECRET_KEY=你的SecretKey
 
-# 腾讯云地区配置 - 选择离您最近的服务器
-# 常用地区选项：
+# 腾讯云服务器地区配置
+# 选择离您最近的服务器以获得最佳性能：
 # ap-guangzhou  广州（华南）
 # ap-shanghai   上海（华东）  
 # ap-beijing    北京（华北）
 # ap-chengdu    成都（西南）
-# ap-singapore  新加坡（亚太东南）
+# ap-singapore  新加坡
 # ap-hongkong   香港
-# ap-tokyo      东京（亚太东北）
+# ap-tokyo      东京
+# na-siliconvalley  硅谷
+# na-ashburn    弗吉尼亚
 TENCENT_REGION=ap-guangzhou 

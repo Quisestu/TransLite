@@ -22,12 +22,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.StopCircle
@@ -49,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import com.example.test0.AppThemeMode
 import com.example.test0.model.ImageLanguage
 import com.example.test0.model.getDisplayNameWithDetected
 import com.example.test0.ui.components.ImageLanguageSelector
@@ -62,8 +59,7 @@ import java.io.File
 fun ImageTranslationScreen(
     onNavigateBack: () -> Unit,
     onNavigateToHistory: () -> Unit,
-    themeMode: AppThemeMode,
-    onThemeSwitch: (AppThemeMode) -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: ImageTranslationViewModel = viewModel()
 ) {
     val sourceLanguage by viewModel.sourceLanguage.collectAsState()
@@ -195,7 +191,10 @@ fun ImageTranslationScreen(
             text = { Text(message) },
             confirmButton = {
                 TextButton(onClick = { viewModel.clearErrorMessage() }) {
-                    Text("确定")
+                    Text(
+                        text = "确定",
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         )
@@ -224,22 +223,11 @@ fun ImageTranslationScreen(
                             tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
-                    // 主题切换按钮
-                    IconButton(onClick = {
-                        val next = when (themeMode) {
-                            AppThemeMode.LIGHT -> AppThemeMode.DARK
-                            AppThemeMode.DARK -> AppThemeMode.SYSTEM
-                            AppThemeMode.SYSTEM -> AppThemeMode.LIGHT
-                        }
-                        onThemeSwitch(next)
-                    }) {
+                    // 设置按钮
+                    IconButton(onClick = onNavigateToSettings) {
                         Icon(
-                            imageVector = when (themeMode) {
-                                AppThemeMode.LIGHT -> Icons.Default.LightMode
-                                AppThemeMode.DARK -> Icons.Default.DarkMode
-                                AppThemeMode.SYSTEM -> Icons.Default.Computer
-                            },
-                            contentDescription = "切换主题",
+                            Icons.Default.Settings,
+                            contentDescription = "设置",
                             tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
@@ -577,7 +565,7 @@ fun ImageTranslationScreen(
                 // 关闭按钮
                 IconButton(
                     onClick = { showImageViewer = false },
-                    modifier = Modifier
+                modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(16.dp)
                         .background(

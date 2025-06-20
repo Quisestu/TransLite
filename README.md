@@ -20,36 +20,48 @@ git clone [你的项目地址]
 cd Test0
 ```
 
-### 2. 配置腾讯云服务
+### 2. 腾讯云服务配置
 
-#### 2.1 获取腾讯云API密钥
-1. 注册并登录 [腾讯云控制台](https://cloud.tencent.com/)
-2. 开通以下服务：
-   - [机器翻译 TMT](https://console.cloud.tencent.com/tmt)
-3. 获取API密钥：访问 [API密钥管理](https://console.cloud.tencent.com/cam/capi)
-   - 记录您的 `SecretId` 和 `SecretKey`
-   - 记录您的应用ID（AppId）
+本应用提供两种配置方式，请根据您的需求选择：
 
-#### 2.2 创建本地配置文件
+#### 方式1：普通用户配置（推荐）
+
+**无需任何预配置！** 直接运行应用即可。
+
+1. 首次启动应用时，会自动显示配置引导界面
+2. 按照界面提示获取腾讯云配置信息：
+   - 注册并登录 [腾讯云控制台](https://cloud.tencent.com/)
+   - 开通 [机器翻译 TMT](https://console.cloud.tencent.com/tmt) 服务
+   - 在 [API密钥管理](https://console.cloud.tencent.com/cam/capi) 页面获取密钥
+3. 在应用中填写您的配置信息，或选择跳过稍后配置
+4. 后续可在应用设置中随时修改配置
+
+#### 方式2：开发者预配置（可选）
+
+**仅供开发者使用！** 如果您希望在开发环境中跳过配置界面，可以预设配置。
+
 1. 复制配置模板：
    ```bash
    cp local.properties.example local.properties
    ```
 
-2. 编辑 `local.properties` 文件，填入您的配置信息：
+2. 编辑 `local.properties` 文件，填入您的真实配置信息：
    ```properties
-   # Android SDK路径 (Android Studio会自动生成)
+   # Android SDK路径 (Android Studio自动生成，无需修改)
    sdk.dir=YOUR_ANDROID_SDK_PATH
 
-   # 腾讯云配置
-   TENCENT_APP_ID=你的应用ID
-   TENCENT_SECRET_ID=你的SecretId  
-   TENCENT_SECRET_KEY=你的SecretKey
+   # 腾讯云开发者配置
+   TENCENT_APP_ID=你的真实应用ID
+   TENCENT_SECRET_ID=你的真实SecretId  
+   TENCENT_SECRET_KEY=你的真实SecretKey
    TENCENT_REGION=ap-guangzhou
    ```
 
-#### 2.3 选择服务器地区
-根据您的地理位置选择最近的服务器地区（修改 `TENCENT_REGION` 值）：
+3. 重新构建应用，将跳过配置界面直接使用预设配置
+
+#### 服务器地区选择
+
+根据您的地理位置选择最近的服务器地区以获得最佳性能：
 
 **中国大陆：**
 - `ap-guangzhou` - 广州（华南）
@@ -113,24 +125,44 @@ app/src/main/java/com/example/test0/
 ## 注意事项
 
 ⚠️ **重要提醒：**
-- `local.properties` 文件包含敏感信息，请勿提交到版本控制系统
 - 腾讯云服务按使用量计费，请注意控制成本
-- 首次使用需要在腾讯云控制台开通相关服务
+- 首次使用需要在腾讯云控制台开通机器翻译服务
+- 如使用开发者预配置，`local.properties` 文件包含敏感信息，请勿提交到版本控制系统
+- 普通用户的配置信息安全存储在应用内，支持随时修改
 
 ## 故障排除
 
 ### 常见问题
 
-**Q: 编译失败，提示找不到 BuildConfig**  
-A: 确保已正确配置 `local.properties` 文件，并重新构建项目
+**Q: 首次启动显示配置界面，但我不想现在配置**  
+A: 可以点击"跳过"按钮，稍后在设置中完成配置
 
 **Q: 翻译服务无法使用**  
-A: 检查网络连接和腾讯云服务是否正常开通
+A: 检查以下几点：
+- 网络连接是否正常
+- 腾讯云机器翻译服务是否已开通
+- 配置信息是否正确填写
+- 是否有足够的账户余额
 
 **Q: 语音识别无响应**  
 A: 确认已授予录音权限，并检查设备音频设置
 
+**Q: 编译失败，提示找不到 BuildConfig**  
+A: 这是正常现象，重新构建项目即可。如果问题持续，请尝试清理项目后重新构建
+
 ## 版本历史
+
+### v3.1 (2024) - 配置管理系统优化
+- ⚙️ **智能配置管理**
+  - 新增首次配置引导界面，支持跳过选项
+  - 完善的设置页面，支持在线修改配置
+  - 双模式配置：用户配置 + 开发者预配置
+  - 多层配置优先级：用户配置 > 开发者配置 > 默认配置
+- 🔧 **用户体验改进**
+  - 普通用户零配置启动，首次使用时自动引导
+  - 开发者可选择预配置，跳过配置界面
+  - 配置验证和错误提示优化
+  - 支持配置清除和重置功能
 
 ### v3.0 (2024) - 历史记录功能 + 深色模式优化
 - ✨ **新增历史记录功能**

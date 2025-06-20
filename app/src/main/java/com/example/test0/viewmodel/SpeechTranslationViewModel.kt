@@ -20,9 +20,9 @@ import com.example.test0.model.TranslationType
 import android.util.Log
 
 class SpeechTranslationViewModel(application: Application) : AndroidViewModel(application) {
+    private val translationRepository = TranslationRepository.getInstance(application)
     private val supportedLanguages = listOf(Language.CHINESE, Language.ENGLISH)
     private val textToSpeechService = TextToSpeechService(application.applicationContext)
-    private val translationRepository = TranslationRepository.getInstance(application.applicationContext)
 
     private val _sourceLanguage = MutableStateFlow(Language.CHINESE)
     val sourceLanguage: StateFlow<Language> = _sourceLanguage.asStateFlow()

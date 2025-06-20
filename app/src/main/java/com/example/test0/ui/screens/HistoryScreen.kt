@@ -90,7 +90,10 @@ fun HistoryScreen(
             text = { Text(message) },
             confirmButton = {
                 TextButton(onClick = { viewModel.clearErrorMessage() }) {
-                    Text("确定")
+                    Text(
+                        text = "确定",
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         )
@@ -107,12 +110,18 @@ fun HistoryScreen(
                     onClick = { viewModel.deleteAllRecords() },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("确定")
+                    Text(
+                        text = "确定",
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.hideDeleteAllDialog() }) {
-                    Text("取消")
+                    Text(
+                        text = "取消",
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         )
@@ -291,12 +300,18 @@ private fun HistoryRecordItem(
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("删除")
+                    Text(
+                        text = "删除",
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("取消")
+                    Text(
+                        text = "取消",
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         )

@@ -24,11 +24,13 @@ android {
         val localPropsFile = rootProject.file("local.properties")
         if (localPropsFile.exists()) {
             localPropsFile.inputStream().use { localProps.load(it) }
-            buildConfigField("String", "TENCENT_APP_ID", "\"${localProps.getProperty("TENCENT_APP_ID") ?: ""}\"")
-            buildConfigField("String", "TENCENT_SECRET_ID", "\"${localProps.getProperty("TENCENT_SECRET_ID") ?: ""}\"")
-            buildConfigField("String", "TENCENT_SECRET_KEY", "\"${localProps.getProperty("TENCENT_SECRET_KEY") ?: ""}\"")
-            buildConfigField("String", "TENCENT_REGION", "\"${localProps.getProperty("TENCENT_REGION") ?: "ap-guangzhou"}\"")
         }
+        
+        // 始终创建BuildConfig字段，避免编译错误
+        buildConfigField("String", "TENCENT_APP_ID", "\"${localProps.getProperty("TENCENT_APP_ID") ?: ""}\"")
+        buildConfigField("String", "TENCENT_SECRET_ID", "\"${localProps.getProperty("TENCENT_SECRET_ID") ?: ""}\"")
+        buildConfigField("String", "TENCENT_SECRET_KEY", "\"${localProps.getProperty("TENCENT_SECRET_KEY") ?: ""}\"")
+        buildConfigField("String", "TENCENT_REGION", "\"${localProps.getProperty("TENCENT_REGION") ?: "ap-guangzhou"}\"")
     }
 
     buildTypes {

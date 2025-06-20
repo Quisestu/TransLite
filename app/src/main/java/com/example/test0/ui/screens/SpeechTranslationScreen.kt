@@ -14,9 +14,7 @@ import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Computer
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
@@ -31,7 +29,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.test0.model.Language
-import com.example.test0.AppThemeMode
 import com.example.test0.viewmodel.SpeechTranslationViewModel
 import com.example.test0.ui.components.LanguageSelector
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -55,8 +52,7 @@ import androidx.compose.material3.LocalContentColor
 fun SpeechTranslationScreen(
     onNavigateBack: () -> Unit,
     onNavigateToHistory: () -> Unit,
-    themeMode: AppThemeMode,
-    onThemeSwitch: (AppThemeMode) -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: SpeechTranslationViewModel
 ) {
     // 仅支持中英互换
@@ -98,7 +94,10 @@ fun SpeechTranslationScreen(
             text = { Text(message) },
             confirmButton = {
                 TextButton(onClick = { viewModel.clearErrorMessage() }) {
-                    Text("确定")
+                    Text(
+                        text = "确定",
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         )
@@ -127,22 +126,11 @@ fun SpeechTranslationScreen(
                             tint = MaterialTheme.colorScheme.onPrimary
                             )
                     }
-                    // 主题切换按钮
-                    IconButton(onClick = {
-                        val next = when (themeMode) {
-                            AppThemeMode.LIGHT -> AppThemeMode.DARK
-                            AppThemeMode.DARK -> AppThemeMode.SYSTEM
-                            AppThemeMode.SYSTEM -> AppThemeMode.LIGHT
-                        }
-                        onThemeSwitch(next)
-                    }) {
+                    // 设置按钮
+                    IconButton(onClick = onNavigateToSettings) {
                         Icon(
-                            imageVector = when (themeMode) {
-                                AppThemeMode.LIGHT -> Icons.Default.LightMode
-                                AppThemeMode.DARK -> Icons.Default.DarkMode
-                                AppThemeMode.SYSTEM -> Icons.Default.Computer
-                            },
-                            contentDescription = "切换主题",
+                            Icons.Default.Settings,
+                            contentDescription = "设置",
                             tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
